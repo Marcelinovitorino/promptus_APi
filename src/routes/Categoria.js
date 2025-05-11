@@ -3,7 +3,7 @@ import { Router } from "express";
 import { CategoriaController } from "../controllers/categoriaController.js";
 
 const routes = Router();
-const database = new DatabasePostgress();
+const database = new CategoriaController();
 
 // Listar categorias
 routes.get("/categorias", async (req, res) => {
@@ -14,7 +14,7 @@ routes.get("/categorias", async (req, res) => {
 
 // Criar categoria
 routes.post("/categorias", async (req, res) => {
-  const { name } = req.body;
+  const { nome } = req.body;
 
   await database.create({
     nome

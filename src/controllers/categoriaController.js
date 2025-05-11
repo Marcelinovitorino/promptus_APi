@@ -1,6 +1,6 @@
-import { sql } from "./db.js";
+import { sql } from "../models/db.js";
 
-export class DatabasePostgress {
+export class CategoriaController{
   //Metodo de listagem de categoria
   async list() {
     let categoria;
@@ -14,7 +14,7 @@ export class DatabasePostgress {
     const { nome } = categoria;
     await sql`
       INSERT INTO categoria (nome) 
-      VALUES (${nome}`;
+      VALUES (${nome})`;
   }
   //Metodo de actualizacao de categoria
   async update(id, categoria) {
