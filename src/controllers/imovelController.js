@@ -1,53 +1,93 @@
-import { Router } from "express";
-import multer from "multer";
-import path from "path";
+import { sql } from '../models/db.js';
 
-import { DatabasePostgress } from "../models/database-Postgress.js";
-import multerConfig from "../config/multerConfig.js";
+export class imovelController {
+  // Listar imóveis (com busca opcional)
+  async list(search) {
+    let imoveis;
 
-const routes = Router();
-const database = new DatabasePostgress();
-const upload = multerConfig;
+    if (search) {
+      imoveis = await sql`
+        SELECT * FROM imoveis 
+        WHERE titulo ILIKE ${'%' + search + '%'}
+      `;
+    } else {
+      imoveis = await sql`SELECT * FROM imoveis`;
+    }
 
-// Listar usuários
-routes.get("/users", async (req, res) => {
-
-});
-
-// Criar usuário
-routes.post("/users", upload.array('images', 5), async (req, res) => {
-  const { name, email } = req.body;
-  const imagens = req.files?.map(file => file.filename);
-
-});
-
-
-// Atualizar usuário
-routes.put("/users/:id", upload.array('images', 5), async (req, res) => {
-  const id = req.params.id;
-  const { name, email } = req.body;
-  const images = req.files?.map(file => file.filename);
-
-  // Atualizar os dados do usuário (name, email)
-  await database.update(id, { name, email });
-
-  // Atualizar as images
-  if (images && images.length > 0) {
-    await database.update(id, images);
+    return imoveis;
   }
 
-  res.status(204).json([]);
-});
+  // Criar novo imóvel
+  async create(imovel) {
+    const { titulo, categoria, localizacao, preco, quartos, banheiros, area, status, descricacao, imagens } = imovel;
 
+    const result = await sql`
+      INSERT INTO imoveis 
+      (titulo, categoria, localizacao, preco, quartos, banheiros, area, status, descricacao)
+      VALUES (${titulo}, ${categoria}, ${localizacao}, ${preco}, ${quartos}, ${banheiros}, ${area}, ${status}, ${descricacao})
+      RETURNING id
+    `;
 
-// Deletar usuário
-routes.delete("/users/:id", async (req, res) => {
+    const imovelId = result[0].id;
 
-});
+    if (Array.isArray(imagens)) {
+      for (const filename of imagens) {
+        await sql`
+          INSERT INTO imagens (imovel_id, nome_arquivo)
+          VALUES (${imovelId}, ${filename})
+        `;
+      }
+    }
 
-// Buscar usuário por ID
-routes.get("/users/:id", async (req, res) => {
+    return imovelId;
+  }
 
-});
+  // Atualizar imóvel por ID (e substituir imagens)
+  async update(id, dados) {
+    const { titulo, categoria, localizacao, preco, quartos, banheiros, area, status, descricacao, imagens } = dados;
 
-export default routes;
+    await sql`
+      UPDATE imoveis SET
+        titulo = ${titulo},
+        categoria = ${categoria},
+        localizacao = ${localizacao},
+        preco = ${preco},
+        quartos = ${quartos},
+        banheiros = ${banheiros},
+        area = ${area},
+        status = ${status},
+        descricacao = ${descricacao}
+      WHERE id = ${id}
+    `;
+
+    // Apagar imagens antigas
+    await sql`DELETE FROM imagens WHERE imovel_id = ${id}`;
+
+    // Inserir novas imagens
+    if (Array.isArray(imagens)) {
+      for (const filename of imagens) {
+        await sql`
+          INSERT INTO imagens (imovel_id, nome_arquivo)
+          VALUES (${id}, ${filename})
+        `;
+      }
+    }
+  }
+
+  // Deletar imóvel
+  async delete(id) {
+    await sql`DELETE FROM imagens WHERE imovel_id = ${id}`;
+    await sql`DELETE FROM imoveis WHERE id = ${id}`;
+  }
+
+  // Buscar imóvel por ID
+  async getById(id) {
+    const imovel = await sql`SELECT * FROM imoveis WHERE id = ${id}`;
+    const imagens = await sql`SELECT nome_arquivo FROM imagens WHERE imovel_id = ${id}`;
+
+    return {
+      ...imovel[0],
+      imagens: imagens.map(img => img.nome_arquivo),
+    };
+  }
+}
