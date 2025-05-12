@@ -1,88 +1,120 @@
 const { sql } = require("../models/db");
 
 class ImovelController {
-  // Métodos para o controlador
+//Listagem de imoveis por filtro de pesquisa
   async list(search) {
-    let imoveis;
-
-    if (search) {
-      imoveis = await sql`
+    const baseQuery = sql`
       SELECT i.*, 
         COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
       FROM imoveis i
       LEFT JOIN imagens img ON i.id = img.imovel_id
+    `;
+
+    const whereClause = search ? sql`
       WHERE i.titulo ILIKE '%' || ${search} || '%'
          OR CAST(i.preco AS TEXT) ILIKE '%' || ${search} || '%'
          OR i.localizacao ILIKE '%' || ${search} || '%'
-      GROUP BY i.id
-      ORDER BY i.id ASC
-    `;
-    } else {
-      imoveis = await sql`
+    ` : sql``;
+
+    const orderClause = sql`GROUP BY i.id ORDER BY i.id ASC`;
+
+    const imoveis = await sql`${baseQuery} ${whereClause} ${orderClause}`;
+    return imoveis;
+  }
+//Busca um imóvel por ID
+  async findById(id) {
+    const [imovel] = await sql`
       SELECT i.*, 
         COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
       FROM imoveis i
       LEFT JOIN imagens img ON i.id = img.imovel_id
+      WHERE i.id = ${id}
+      GROUP BY i.id
+    `;
+    
+    return imovel || null;
+  }
+
+//criacao de imovel
+  async create(imovel) {
+    const { titulo, descricao, imagens = [], preco, area, quartos, 
+            banheiros, status, categoria_id, localizacao_id } = imovel;
+
+    const [novoImovel] = await sql`
+      INSERT INTO imoveis (
+        titulo, descricao, preco, area, quartos, banheiros, status,
+        categoria_id, localizacao_id
+      ) VALUES (
+        ${titulo}, ${descricao}, ${preco}, ${area}, ${quartos},
+        ${banheiros}, ${status}, ${categoria_id}, ${localizacao_id}
+      ) RETURNING *;
+    `;
+
+    await this._insertImages(novoImovel.id, imagens);
+    return novoImovel;
+  }
+
+//actualizacao de imovel
+  async update(id, imovel) {
+    const { titulo, descricao, preco, area, quartos, banheiros,
+            status, categoria_id, localizacao_id, imagens = [] } = imovel;
+
+    const [imovelAtualizado] = await sql`
+      UPDATE imoveis SET
+        titulo = ${titulo},
+        descricao = ${descricao},
+        preco = ${preco},
+        area = ${area},
+        quartos = ${quartos},
+        banheiros = ${banheiros},
+        status = ${status},
+        categoria_id = ${categoria_id},
+        localizacao_id = ${localizacao_id}
+      WHERE id = ${id}
+      RETURNING *;
+    `;
+
+    await this._updateImages(id, imagens);
+    return imovelAtualizado;
+  }
+
+//Exclusao de imovel
+  async delete(id) {
+    // Primeiro remove as imagens associadas
+    await sql`DELETE FROM imagens WHERE imovel_id = ${id}`;
+    
+    // Depois remove o imóvel
+    const result = await sql`DELETE FROM imoveis WHERE id = ${id}`;
+    
+    return result.count > 0;
+  }
+//Listagem de imoveis por categporia
+  async listByCategory(categoriaId) {
+    const imoveis = await sql`
+      SELECT i.*, 
+        COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
+      FROM imoveis i
+      LEFT JOIN imagens img ON i.id = img.imovel_id
+      WHERE i.categoria_id = ${categoriaId}
       GROUP BY i.id
       ORDER BY i.id ASC
     `;
-    }
-
+    
     return imoveis;
   }
-
-  //
-async create(imovel) {
-  const {
-    titulo,
-    descricao,
-    imagens, // array de URLs de imagens
-    preco,
-    area,
-    quartos,
-    banheiros,
-    status,
-    categoria_id,
-    localizacao_id
-  } = imovel;
-
-  // Primeiro, cria o imóvel
-  const [Imovel] = await sql`
-    INSERT INTO imoveis (
-      titulo, descricao, preco, area, quartos, banheiros, status,
-      categoria_id, localizacao_id
-    )
-    VALUES (
-      ${titulo}, ${descricao}, ${preco}, ${area}, ${quartos},
-      ${banheiros}, ${status}, ${categoria_id}, ${localizacao_id}
-    )
-    RETURNING *;
-  `;
-
-  // Em seguida, insere as imagens relacionadas ao imóvel (se houver)
-  if (Array.isArray(imagens) && imagens.length > 0) {
-    for (const url of imagens) {
-      await sql`
-        INSERT INTO imagens (url, imovel_id)
-        VALUES (${url}, ${Imovel.id});
-      `;
-    }
-  }
-
-  return Imovel;
-}
-
-
-  async update(id, imovel) {
-    // ...
-  }
-
-  async delete(id) {
-    // ...
-  }
-
-  async findById(id) {
-    // ...
+//listagem de imoveis por status
+  async listByStatus(status) {
+    const imoveis = await sql`
+      SELECT i.*, 
+        COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
+      FROM imoveis i
+      LEFT JOIN imagens img ON i.id = img.imovel_id
+      WHERE i.status = ${status}
+      GROUP BY i.id
+      ORDER BY i.id ASC
+    `;
+    
+    return imoveis;
   }
 }
 
