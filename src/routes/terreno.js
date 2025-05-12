@@ -4,7 +4,8 @@ const multerConfig = require("../config/multerConfig");
 
 const routes = express.Router();
 const database = new terrenoController()
-const upload = multerConfig;
+const { upload, handleMulterError } = require('../config/multerConfig');
+
 
 // Middleware de tratamento de erros
 const handleErrors = (res, error, action) => {
@@ -39,10 +40,10 @@ routes.get("/terrenos/:id", async (req, res) => {
 });
 
 // Criar novo terreno
-routes.post("/terrenos", upload.array('imagens', 5), async (req, res) => {
+routes.post("/terrenos", upload.array('imagens', 5),handleMulterError, async (req, res) => {
   try {
     const { titulo, descricao, preco, area, localizacao } = req.body;
-    const imagens = req.files?.map(file => file.filename) || [];
+    const imagens = req.files?.map(file => file.path) || []; 
 
     const novoTerreno = await database.create({
       titulo,

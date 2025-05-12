@@ -4,7 +4,8 @@ const multerConfig = require("../config/multerConfig");
 
 const routes = express.Router();
 const database = new imovelController();
-const upload = multerConfig;
+const { upload, handleMulterError } = require('../config/multerConfig');
+
 
 // Middleware de tratamento de erros
 const handleErrors = (res, error, action) => {
@@ -23,10 +24,10 @@ routes.get("/imoveis", async (req, res) => {
 });
 
 // Criar novo imóvel
-routes.post("/imoveis", upload.array('imagens', 5), async (req, res) => {
+routes.post("/imoveis", upload.array('imagens', 5),handleMulterError, async (req, res) => {
   try {
     const { titulo, descricao, preco, area, quartos, banheiros, status, categoria, localizacao } = req.body;
-    const imagens = req.files?.map(file => file.filename) || [];
+    const imagens = req.files?.map(file => file.path) || []; 
 
     const novoImovel = await database.create({
       titulo,

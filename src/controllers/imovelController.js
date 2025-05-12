@@ -88,7 +88,7 @@ class ImovelController {
     
     return result.count > 0;
   }
-//Listagem de imoveis por categporia
+//Listagem de
   async listByCategory(categoriaId) {
     const imoveis = await sql`
       SELECT i.*, 
@@ -115,6 +115,42 @@ class ImovelController {
     `;
     
     return imoveis;
+  }
+    /**
+   * Lista imóveis por status
+   * @param {string} status - Status do imóvel
+   * @returns {Promise<Array>} Lista de imóveis
+   */
+  async listByStatus(status) {
+    const imoveis = await sql`
+      SELECT i.*, 
+        COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
+      FROM imoveis i
+      LEFT JOIN imagens img ON i.id = img.imovel_id
+      WHERE i.status = ${status}
+      GROUP BY i.id
+      ORDER BY i.id ASC
+    `;
+    
+    return imoveis;
+  }
+
+//inserir imagens
+  async _insertImages(imovelId, urls) {
+    if (!urls.length) return;
+
+    for (const url of urls) {
+      await sql`
+        INSERT INTO imagens (url, imovel_id)
+        VALUES (${url}, ${imovelId});
+      `;
+    }
+  }
+
+//actualizar umagens
+  async _updateImages(imovelId, urls) {
+    await sql`DELETE FROM imagens WHERE imovel_id = ${imovelId}`;
+    await this._insertImages(imovelId, urls);
   }
 }
 
