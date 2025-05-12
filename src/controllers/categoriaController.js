@@ -1,22 +1,21 @@
-import { sql } from "../models/db.js";
+const { sql } = require('../models/db');
 
-export class CategoriaController{
-  //Metodo de listagem de categoria
+class CategoriaController {
+  // Método de listagem de categoria
   async list() {
-    let categoria;
-    categoria = await sql`SELECT * FROM categoria ORDER BY id ASC`;
-
+    const categoria = await sql`SELECT * FROM categoria ORDER BY id ASC`;
     return categoria;
   }
 
-  //Metodo de criacao de categoria
+  // Método de criação de categoria
   async create(categoria) {
     const { nome } = categoria;
     await sql`
       INSERT INTO categoria (nome) 
       VALUES (${nome})`;
   }
-  //Metodo de actualizacao de categoria
+
+  // Método de atualização de categoria
   async update(id, categoria) {
     const { nome } = categoria;
     await sql`
@@ -24,8 +23,13 @@ export class CategoriaController{
       SET nome = ${nome} 
       WHERE id = ${id}`;
   }
-  //Metodo de exclusao de categoria
+
+  // Método de exclusão de categoria
   async delete(id) {
     await sql`DELETE FROM categoria WHERE id = ${id}`;
   }
 }
+
+module.exports = {
+  CategoriaController,
+};

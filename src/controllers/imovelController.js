@@ -1,93 +1,89 @@
-import { sql } from '../models/db.js';
+const { sql } = require("../models/db");
 
-export class imovelController {
-  // Listar imóveis (com busca opcional)
+class ImovelController {
+  // Métodos para o controlador
   async list(search) {
     let imoveis;
 
     if (search) {
       imoveis = await sql`
-        SELECT * FROM imoveis 
-        WHERE titulo ILIKE ${'%' + search + '%'}
-      `;
+      SELECT i.*, 
+        COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
+      FROM imoveis i
+      LEFT JOIN imagens img ON i.id = img.imovel_id
+      WHERE i.titulo ILIKE '%' || ${search} || '%'
+         OR CAST(i.preco AS TEXT) ILIKE '%' || ${search} || '%'
+         OR i.localizacao ILIKE '%' || ${search} || '%'
+      GROUP BY i.id
+      ORDER BY i.id ASC
+    `;
     } else {
-      imoveis = await sql`SELECT * FROM imoveis`;
+      imoveis = await sql`
+      SELECT i.*, 
+        COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
+      FROM imoveis i
+      LEFT JOIN imagens img ON i.id = img.imovel_id
+      GROUP BY i.id
+      ORDER BY i.id ASC
+    `;
     }
 
     return imoveis;
   }
 
-  // Criar novo imóvel
-  async create(imovel) {
-    const { titulo, categoria, localizacao, preco, quartos, banheiros, area, status, descricacao, imagens } = imovel;
+  //
+async create(imovel) {
+  const {
+    titulo,
+    descricao,
+    imagens, // array de URLs de imagens
+    preco,
+    area,
+    quartos,
+    banheiros,
+    status,
+    categoria_id,
+    localizacao_id
+  } = imovel;
 
-    const result = await sql`
-      INSERT INTO imoveis 
-      (titulo, categoria, localizacao, preco, quartos, banheiros, area, status, descricacao)
-      VALUES (${titulo}, ${categoria}, ${localizacao}, ${preco}, ${quartos}, ${banheiros}, ${area}, ${status}, ${descricacao})
-      RETURNING id
-    `;
+  // Primeiro, cria o imóvel
+  const [Imovel] = await sql`
+    INSERT INTO imoveis (
+      titulo, descricao, preco, area, quartos, banheiros, status,
+      categoria_id, localizacao_id
+    )
+    VALUES (
+      ${titulo}, ${descricao}, ${preco}, ${area}, ${quartos},
+      ${banheiros}, ${status}, ${categoria_id}, ${localizacao_id}
+    )
+    RETURNING *;
+  `;
 
-    const imovelId = result[0].id;
-
-    if (Array.isArray(imagens)) {
-      for (const filename of imagens) {
-        await sql`
-          INSERT INTO imagens (imovel_id, nome_arquivo)
-          VALUES (${imovelId}, ${filename})
-        `;
-      }
-    }
-
-    return imovelId;
-  }
-
-  // Atualizar imóvel por ID (e substituir imagens)
-  async update(id, dados) {
-    const { titulo, categoria, localizacao, preco, quartos, banheiros, area, status, descricacao, imagens } = dados;
-
-    await sql`
-      UPDATE imoveis SET
-        titulo = ${titulo},
-        categoria = ${categoria},
-        localizacao = ${localizacao},
-        preco = ${preco},
-        quartos = ${quartos},
-        banheiros = ${banheiros},
-        area = ${area},
-        status = ${status},
-        descricacao = ${descricacao}
-      WHERE id = ${id}
-    `;
-
-    // Apagar imagens antigas
-    await sql`DELETE FROM imagens WHERE imovel_id = ${id}`;
-
-    // Inserir novas imagens
-    if (Array.isArray(imagens)) {
-      for (const filename of imagens) {
-        await sql`
-          INSERT INTO imagens (imovel_id, nome_arquivo)
-          VALUES (${id}, ${filename})
-        `;
-      }
+  // Em seguida, insere as imagens relacionadas ao imóvel (se houver)
+  if (Array.isArray(imagens) && imagens.length > 0) {
+    for (const url of imagens) {
+      await sql`
+        INSERT INTO imagens (url, imovel_id)
+        VALUES (${url}, ${Imovel.id});
+      `;
     }
   }
 
-  // Deletar imóvel
+  return Imovel;
+}
+
+
+  async update(id, imovel) {
+    // ...
+  }
+
   async delete(id) {
-    await sql`DELETE FROM imagens WHERE imovel_id = ${id}`;
-    await sql`DELETE FROM imoveis WHERE id = ${id}`;
+    // ...
   }
 
-  // Buscar imóvel por ID
-  async getById(id) {
-    const imovel = await sql`SELECT * FROM imoveis WHERE id = ${id}`;
-    const imagens = await sql`SELECT nome_arquivo FROM imagens WHERE imovel_id = ${id}`;
-
-    return {
-      ...imovel[0],
-      imagens: imagens.map(img => img.nome_arquivo),
-    };
+  async findById(id) {
+    // ...
   }
 }
+
+module.exports = ImovelController;

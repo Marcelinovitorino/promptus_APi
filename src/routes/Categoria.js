@@ -1,13 +1,11 @@
-import { Router } from "express";
+const express = require('express');
+const { CategoriaController } = require('../controllers/categoriaController');
 
-import { CategoriaController } from "../controllers/categoriaController.js";
-
-const routes = Router();
+const routes = express.Router();
 const database = new CategoriaController();
 
 // Listar categorias
 routes.get("/categorias", async (req, res) => {
-
   const categorias = await database.list();
   return res.json(categorias);
 });
@@ -16,9 +14,7 @@ routes.get("/categorias", async (req, res) => {
 routes.post("/categorias", async (req, res) => {
   const { nome } = req.body;
 
-  await database.create({
-    nome
-  });
+  await database.create({ nome });
 
   res.status(200).json({ message: "Categoria criada com sucesso!" });
 });
@@ -28,9 +24,7 @@ routes.put("/categorias/:id", async (req, res) => {
   const id = req.params.id;
   const { nome } = req.body;
 
-  await database.update(id, {
-    nome,
-  });
+  await database.update(id, { nome });
 
   res.status(204).json([]);
 });
@@ -55,4 +49,4 @@ routes.get("/categorias/:id", async (req, res) => {
   return res.json(categoria);
 });
 
-export default routes;
+module.exports = routes;

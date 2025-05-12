@@ -1,5 +1,8 @@
-// src/models/db.js
-import "dotenv/config";
-import { neon } from "@neondatabase/serverless";
+require('dotenv/config');
+const { neon } = require('@neondatabase/serverless');
 
-export const sql = neon(process.env.DATABASE_URL);
+const sql = neon(process.env.DATABASE_URL);
+
+module.exports = {
+  sql
+};

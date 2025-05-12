@@ -1,4 +1,4 @@
-import { sql } from './db';
+const { sql } = require('./db');
 
 sql`
 CREATE TABLE terreno (
@@ -10,11 +10,10 @@ CREATE TABLE terreno (
     localizacao_id INT REFERENCES localizacao(id),
     corretor_id INT REFERENCES corretor(id)
 );
-
 `
-.then(() => {
+  .then(() => {
     console.log("Tabela 'Terreno' criada com sucesso.");
-})
-.catch((err) => {
+  })
+  .catch((err) => {
     console.error("Erro ao criar tabela:", err);
-});
+  });

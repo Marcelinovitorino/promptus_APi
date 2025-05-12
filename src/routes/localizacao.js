@@ -1,12 +1,11 @@
-import { Router } from "express";
-import { LocalizacaoController } from "../controllers/localizacaoController.js";
+const express = require('express');
+const { LocalizacaoController } = require('../controllers/localizacaoController');
 
-const routes = Router();
-const database = new LocalizacaoController ();
+const routes = express.Router();
+const database = new LocalizacaoController();
 
-// Listar localizacao
+// Listar localização
 routes.get("/localizacao", async (req, res) => {
- 
   try {
     const localizacoes = await database.list();
     return res.json(localizacoes);
@@ -63,4 +62,4 @@ routes.get("/localizacao/:id", async (req, res) => {
   }
 });
 
-export default routes;
+module.exports = routes;

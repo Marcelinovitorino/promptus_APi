@@ -1,10 +1,9 @@
-// config/multerConfig.js
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 // Cria pasta uploads se não existir
-const uploadDir = "uploads";
+const uploadDir = 'uploads';
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const storage = multer.diskStorage({
@@ -12,10 +11,11 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + "-" + file.originalname;
+    const uniqueName = Date.now() + '-' + file.originalname;
     cb(null, uniqueName);
   },
 });
 
 const multerConfig = multer({ storage });
-export default multerConfig;
+
+module.exports = multerConfig;

@@ -1,4 +1,4 @@
-import { sql } from './db';
+const { sql } = require('./db');
 
 sql`
 CREATE TABLE imovel (
@@ -11,13 +11,12 @@ CREATE TABLE imovel (
     banheiros INT,
     status VARCHAR(30),
     categoria_id INT REFERENCES categoria(id),
-    localizacao_id INT REFERENCES localizacao(id),
+    localizacao_id INT REFERENCES localizacao(id)
 );
-
 `
-.then(() => {
+  .then(() => {
     console.log("Tabela 'imovel' criada com sucesso.");
-})
-.catch((err) => {
+  })
+  .catch((err) => {
     console.error("Erro ao criar tabela:", err);
-});
+  });

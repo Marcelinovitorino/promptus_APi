@@ -1,4 +1,4 @@
-import { sql } from './db';
+const { sql } = require('./db');
 
 sql`
    CREATE TABLE categoria (
@@ -6,9 +6,9 @@ sql`
     nome VARCHAR(45) NOT NULL
 );
 `
-.then(() => {
+  .then(() => {
     console.log("Tabela 'categoria' criada com sucesso.");
-})
-.catch((err) => {
+  })
+  .catch((err) => {
     console.error("Erro ao criar tabela:", err);
-});
+  });
