@@ -1,11 +1,12 @@
 const express = require('express');
 const { CategoriaController } = require('../controllers/categoriaController');
+const { autenticarToken, somenteAdmin } = require('../middlewares/authMiddleware');
 
 const routes = express.Router();
 const database = new CategoriaController();
 
 // Listar categorias
-routes.get("/categorias", async (req, res) => {
+routes.get("/categorias", autenticarToken,somenteAdmin, async (req, res) => {
   const categorias = await database.list();
   return res.json(categorias);
 });

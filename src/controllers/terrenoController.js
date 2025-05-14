@@ -1,4 +1,4 @@
-const { sql } = require("../models/db");
+const { sql } = require("../config/db");
 
 class TerrenoController {
 //lista de terrenos com filtro de pesquisa
