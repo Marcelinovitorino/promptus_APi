@@ -1,5 +1,6 @@
 
 const express = require('express');
+const cors = require('cors');
 const categoriaRoutes = require('./src/routes/Categoria');
 const localizacaoRoutes = require('./src/routes/localizacao');
 const imovelRoutes = require('./src/routes/imovel');
@@ -10,7 +11,8 @@ const authRoutes = require('./src/routes/auth');
 
 const app = express();
 
-app.use(express.json()); 
+app.use(express.json());
+app.use(cors()); 
 require('dotenv').config(); // Middleware para tratar JSON
 
 app.use('/', categoriaRoutes);
