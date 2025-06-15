@@ -22,7 +22,8 @@ class ImovelController {
     return imoveis;
   }
 //Busca um imóvel por ID
-  async findById(id) {
+async findById(id) {
+  try {
     const [imovel] = await sql`
       SELECT i.*, 
         COALESCE(json_agg(img.url) FILTER (WHERE img.url IS NOT NULL), '[]') AS imagens
@@ -31,9 +32,12 @@ class ImovelController {
       WHERE i.id = ${id}
       GROUP BY i.id
     `;
-    
     return imovel || null;
+  } catch (error) {
+    console.error('Erro no findById:', error);
+    throw new Error('Erro ao buscar imóvel no banco de dados');
   }
+}
 
 //criacao de imovel
   async create(imovel) {
