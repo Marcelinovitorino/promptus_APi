@@ -23,6 +23,24 @@ routes.get("/imoveis", async (req, res) => {
   }
 });
 
+//Listagem de imovel por id
+routes.get('/:id', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const imovel = await controller.findById(id);
+
+    if (!imovel) {
+      return res.status(404).json({ message: 'Imóvel não encontrado' });
+    }
+
+    res.json(imovel);
+  } catch (error) {
+    console.error('Erro ao buscar imóvel por ID:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
 // Criar novo imóvel
 routes.post("/imoveis", upload.array('imagens', 5),handleMulterError, async (req, res) => {
   try {
