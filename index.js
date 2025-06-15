@@ -3,6 +3,7 @@ const express = require('express');
 const categoriaRoutes = require('./src/routes/Categoria');
 const localizacaoRoutes = require('./src/routes/localizacao');
 const imovelRoutes = require('./src/routes/imovel');
+const imoveisRoutes = require('./routes/imoveis');
 const terrenoROutes = require('./src/routes/terreno');
 const authRoutes = require('./src/routes/auth');
 
