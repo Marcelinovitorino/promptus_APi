@@ -18,7 +18,7 @@ require('dotenv').config(); // Middleware para tratar JSON
 app.use('/', categoriaRoutes);
 app.use('/', localizacaoRoutes);
 app.use('/', imovelRoutes);
-app.use('/api/imoveis', imoveisRoutes);
+app.use('/', imoveisRoutes);
 app.use('/', terrenoROutes);
 app.use('/', authRoutes);
 console.log('Cloud name:', process.env.CLOUDINARY_CLOUD_NAME); 

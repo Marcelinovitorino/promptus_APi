@@ -24,7 +24,7 @@ routes.get("/imoveis", async (req, res) => {
 });
 
 //Listagem de imovel por id
-routes.get('/:id', async (req, res) => {
+routes.get('/imoveis/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
