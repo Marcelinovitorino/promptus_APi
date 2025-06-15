@@ -1,10 +1,10 @@
 
 const express = require('express');
-const categoriaRoutes = require('./routes/Categoria');
-const localizacaoRoutes = require('./routes/localizacao');
-const imovelRoutes = require('./routes/imovel');
-const terrenoROutes = require('./routes/terreno');
-const authRoutes = require('./routes/auth');
+const categoriaRoutes = require('./src/routes/Categoria');
+const localizacaoRoutes = require('./src/routes/localizacao');
+const imovelRoutes = require('./src/routes/imovel');
+const terrenoROutes = require('./src/routes/terreno');
+const authRoutes = require('./src/routes/auth');
 
 
 const app = express();
