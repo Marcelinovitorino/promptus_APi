@@ -28,7 +28,7 @@ routes.get('/imoveis/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
-    const imovel = await controller.findById(id);
+    const imovel = await database.findById(id);  ;
 
     if (!imovel) {
       return res.status(404).json({ message: 'Imóvel não encontrado' });
